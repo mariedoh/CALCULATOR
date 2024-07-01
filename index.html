@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <link href = "home.css" rel = "stylesheet">
+    <script src="https://kit.fontawesome.com"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1 style="text-align: center; color: #dfc30f; font-size: 50px;">TechBabe101</h1>
+        </div> 
+        <div class="calc-body">
+
+                <!-- This is for the prompts-->
+                <div class="screen" id = "prompts">
+                    <p id = "output"></p>
+                </div>
+                    
+                <!-- This is for the keys/buttons -->
+                <div class="btns" id = "keys">
+                    <!--First row of buttons-->
+                    
+                        <button onclick = "deletePara()" class="delete" style="color: white;">DEL</i></button>
+                        <button id="toggleButton" class="num">()</button>
+                        <button onclick="updateOperation(this.innerText)" class="num">%</button>
+                        <button onclick="updateOperation(this.innerText)" id = "black" class="num">÷</button>
+                    
+    
+                    <!--Second row of buttons-->
+                    
+                        <button onclick="updatePara(this.innerText)" class="num">7</button>
+                        <button onclick="updatePara(this.innerText)" class="num">8</button>
+                        <button onclick="updatePara(this.innerText)" class="num">9</button>
+                        <button onclick="updateOperation(this.innerText)" id = "black" class="num">x</button>
+                
+    
+                    <!--Third row of buttons-->
+                        <button onclick="updatePara(this.innerText)" class="num">4</button>
+                        <button onclick="updatePara(this.innerText)" class="num">5</button>
+                        <button onclick="updatePara(this.innerText)" class="num">6</button>
+                        <button onclick="updateOperation(this.innerText)"id = "black" class="num">-</button>
+                  
+    
+                    <!--Fourth row of buttons-->                
+                        <button onclick="updatePara(this.innerText)" class="num">1</button>
+                        <button onclick="updatePara(this.innerText)" class="num">2</button>
+                        <button onclick="updatePara(this.innerText)" class="num">3</button>
+                        <button onclick="updateOperation(this.innerText)" id = "black" class="num">+</button>
+                   
+                    <!--Last Row of Buttons-->                 
+                        <button onclick="resetPara()"class = "cancel" style="color: white;">C</button>
+                        <button onclick="updatePara(this.innerText)" class="num">0</button>
+                        <button onclick="updateOperation(this.innerText)" id = "black" class="num">.</button>
+                        <button onclick = "processing()" class = "equal" style="color: rgb(254, 255, 255);">=</button>  
+                </div>
+            </div>
+        </div>      
+    </div>   
+</body>
+
+<script>
+    //variables to keep track of the order of terms in the user's query
+    var terms = 0;
+    var order_of_terms = [];
+
+    //variable to manage round brackets
+    const buttn = document.getElementById("toggleButton");
+    let butvalue = buttn.value;
+
+    //variable holding value of paragraph
+    const old = document.querySelector("#output");
+    
+    document.addEventListener('keydown', function(event) {
+    const key = event.key;
+    
+    // Check if the pressed key is a number key (0-9)
+    if (/^\d$/.test(key)) {
+        old.innerHTML += key;
+    }
+    // Check if the pressed key is an operand
+    if (key === '/' || key === '+' || key === '(' || key === ')' || key === '%' || key === '*' || key === '-' || key === '.') {
+        updateOperation(key);
+    }
+    //if the pressed key is backspace/delete, delete one character
+    if(key === "Backspace" || key === "Delete"){
+        deletePara()
+    }
+    //check if the enter or equals to key was pressed. Process received data if ues
+    if(key === '=' || key === "Enter"){
+        processing();
+    }
+    });
+
+    
+    //toggling the () and updating the paragraph
+    buttn.addEventListener("click", function() {
+        if (butvalue === "()"){
+            butvalue = "(";
+        }
+        else if(butvalue === "("){
+            butvalue = ")";
+        }
+        else{
+            butvalue = "(";
+        }
+        order_of_terms[terms] = butvalue;
+        terms+=1;
+        updatePara(butvalue);
+    });
+    //updating the prompt to include input
+    function updateOperation(u){
+        updatePara(u)        
+    }
+//same us function above
+    function updatePara(y){
+        old.innerHTML += y
+    }
+    //clears the prompt
+    function resetPara(){
+        old.innerHTML = "";
+        order_of_terms = [];
+        terms = 0;
+    }
+    //removes one character from the prompt
+    function deletePara(){
+        let text = old.innerHTML;
+        text = text.slice(0, -1);
+        old.innerHTML = text; 
+    }
+    //processes the prompt
+    function processing(){
+        var old = document.querySelector("#output").innerText;
+        //copy of the prompt to find invalid sequences
+        var copy = old;
+        var start = 0;
+
+        //loop to replace English operands with programming version eg x = *
+        for(let x = 0; x< old.length; x++){
+            if(['+', '-', 'x', '÷', '%', '.', '(', ')'].includes(old[x])){
+                order_of_terms[terms] = old.slice(start, x);
+                terms ++;
+                if(old[x] === 'x'){
+                    order_of_terms[terms] = '*';
+                    terms++;
+                }
+                else if(old[x] === '÷'){
+                    order_of_terms[terms] = '/';
+                    terms++;
+                }
+                else if(old[x] === '%'){
+                    order_of_terms[terms] = '/100';
+                    terms++;
+                }
+                else{
+                    order_of_terms[terms] = old[x];
+                    terms++;
+                }
+                start = (x+1);
+            }
+        }
+        //processing the cleaned equation
+        try {
+            order_of_terms[terms]= old.slice(start, ); 
+            var eqn = order_of_terms.join('');
+            var answer = eval(eqn)
+            //if empty prompt, answer = invalid equations
+            if (isNaN(answer)) {
+                answer = "Invalid equation"; 
+            } 
+            //if answer = original, the eval function didn't work i.e. invalid function
+            if(answer == copy){
+                answer = "Invalid equation";
+            }
+            console.log(answer);
+            resetPara();
+            document.querySelector("#output").innerHTML = answer;
+        }
+        //exception handling
+        catch(error){
+            document.querySelector("#output").innerText = "Invalid equation";
+        }
+
+    }
+    
+</script>
+</html>
